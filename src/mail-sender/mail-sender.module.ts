@@ -4,9 +4,7 @@ import { Module } from '@nestjs/common';
 import { join } from 'node:path';
 
 import { MailSenderService } from './mail-sender.service';
-import { LoggerModule } from 'src/logger/logger.module';
 
-console.log("__dirname", __dirname);
 @Module({
   providers: [MailSenderService],
   exports: [MailSenderService],
@@ -49,7 +47,7 @@ console.log("__dirname", __dirname);
         },
       },
     }),
-    LoggerModule,
+
   ],
 })
 export class MailSenderModule {}
