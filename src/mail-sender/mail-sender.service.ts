@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import { LogService } from 'src/logger/logger.service';
 import { ISendMailOptions } from '@nestjs-modules/mailer/dist/interfaces/send-mail-options.interface';
 
 // ... existing imports ...
@@ -21,7 +20,6 @@ export class MailSenderService {
 
   constructor(
     private readonly mailerService: MailerService,
-    private readonly logService: LogService,
   ) {
     this.processQueue();
   }
@@ -40,7 +38,7 @@ export class MailSenderService {
             `Failed to send email after ${this.MAX_RETRIES} attempts`,
             error,
           );
-          await this.logService.error(error);
+          await this.logger.error(error);
         }
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
