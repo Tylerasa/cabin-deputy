@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Param, Req, Get } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { CreateUserDto } from './dto/create-auth.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { LoginUserEntity, UserEntity } from './entities/auth.entity';
+import { LoginDto } from './dto/login.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ResendEmailVerificationDto } from './dto/resend-verification.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Post('register')
+  @ApiCreatedResponse({ type: UserEntity })
+  async register(@Body() createUserDto: CreateUserDto) {
+    const user = await this.authService.register(createUserDto);
+    return user;
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Post('login')
+  @ApiOkResponse({ type: LoginUserEntity })
+  login(@Body() { username, password }: LoginDto) {
+    return this.authService.login(username, password);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Post('verify-email/:token')
+  @ApiOkResponse({ type: UserEntity })
+  verifyEmail(@Param('token') token: string, @Body() { email }: VerifyEmailDto) {
+    return this.authService.verifyEmail(token, email);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
+
+  @Post('/resend-verification')
+  @ApiOkResponse({ type: UserEntity })
+  resendEmailVerification(@Body() { email }: ResendEmailVerificationDto) {
+    return this.authService.resendEmailVerification(email);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+
+  @Get('me')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: UserEntity })
+  getMe(@Req() req: any) {
+    const user = req.user;
+    return this.authService.getMe(user.id);
   }
 }
