@@ -24,10 +24,5 @@ export class CreateUserDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  pin: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   name: string;
 }
