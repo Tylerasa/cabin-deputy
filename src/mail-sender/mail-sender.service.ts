@@ -18,9 +18,7 @@ export class MailSenderService {
   private readonly RETRY_DELAY = 1000; // 1 second
   private readonly DEFAULT_FROM = `"${process.env.APP_NAME || 'App'}" <${process.env.SENDGRID_FROM_EMAIL}>`;
 
-  constructor(
-    private readonly mailerService: MailerService,
-  ) {
+  constructor(private readonly mailerService: MailerService) {
     this.processQueue();
   }
 
@@ -77,6 +75,9 @@ export class MailSenderService {
     email: string,
     token: string,
   ): Promise<void> {
+    this.logger.log(
+      `Sending email to ${email} with subject Welcome to Opticash and template welcome`,
+    );
     const mailOptions: ISendMailOptions = {
       to: email,
       subject: 'Welcome to Opticash',
@@ -91,26 +92,99 @@ export class MailSenderService {
     this.enqueueEmailTask(mailOptions);
   }
 
-
-  async sendMail(
+  async sendPaymentIntentMail(
+    name: string,
     email: string,
-    subject: string,
-    template: string,
-    context: Record<string, any>,
-    emailFrom = this.DEFAULT_FROM,
-    attachments?: any[],
+    otpCode: string,
   ): Promise<void> {
     this.logger.log(
-      `Sending email to ${email} with subject ${subject} and template ${template}`,
+      `Sending email to ${email} with subject Payment Intent and template payment-intent`,
     );
     const mailOptions: ISendMailOptions = {
       to: email,
-      from: emailFrom,
-      subject,
-      template,
-      context,
-      attachments,
+      subject: 'Payment Intent',
+      template: 'payment-intent',
+      context: {
+        name,
+        otpCode,
+      },
+      from: this.DEFAULT_FROM,
     };
+
     this.enqueueEmailTask(mailOptions);
   }
+
+  async sendTransactionSuccessSenderMail(
+    name: string,
+    email: string,
+    amount: number,
+    recipientName: string,
+    currency: string,
+  ): Promise<void> {
+    this.logger.log(
+      `Sending email to ${email} with subject Transaction Success and template transaction-success`,
+    );
+    const mailOptions: ISendMailOptions = {
+      to: email,
+      subject: 'Transaction Success',
+      template: 'transaction-success-sender',
+      context: {
+        name,
+        amount,
+        recipientName,
+        currency,
+      },
+      from: this.DEFAULT_FROM,
+    };
+
+    this.enqueueEmailTask(mailOptions);
+  }
+
+  async sendTransactionSuccessRecipientMail(
+    name: string,
+    email: string,
+    amount: number,
+    senderName: string,
+    currency: string,
+  ): Promise<void> {
+    this.logger.log(
+      `Sending email to ${email} with subject Transaction Success and template transaction-success`,
+    );
+    const mailOptions: ISendMailOptions = {
+      to: email,
+      subject: 'Transaction Success',
+      template: 'transaction-success-recipient',
+      context: {
+        name,
+        amount,
+        senderName,
+        currency,
+      },
+      from: this.DEFAULT_FROM,
+    };
+
+    this.enqueueEmailTask(mailOptions);
+  }
+
+  // async sendMail(
+  //   email: string,
+  //   subject: string,
+  //   template: string,
+  //   context: Record<string, any>,
+  //   emailFrom = this.DEFAULT_FROM,
+  //   attachments?: any[],
+  // ): Promise<void> {
+  //   this.logger.log(
+  //     `Sending email to ${email} with subject ${subject} and template ${template}`,
+  //   );
+  //   const mailOptions: ISendMailOptions = {
+  //     to: email,
+  //     from: emailFrom,
+  //     subject,
+  //     template,
+  //     context,
+  //     attachments,
+  //   };
+  //   this.enqueueEmailTask(mailOptions);
+  // }
 }
