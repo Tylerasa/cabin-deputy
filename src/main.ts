@@ -23,9 +23,10 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Transaction API')
-    .setDescription('The transaction API description')
+    .setTitle('Opticash API')
+    .setDescription('The Opticash API description')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
