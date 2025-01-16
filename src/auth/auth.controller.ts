@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Param, Req, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Req,
+  Get,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-auth.dto';
@@ -7,6 +15,7 @@ import { LoginUserEntity, UserEntity } from './entities/auth.entity';
 import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ResendEmailVerificationDto } from './dto/resend-verification.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,12 +34,11 @@ export class AuthController {
     return this.authService.login(username, password);
   }
 
-  @Post('verify-email/:token')
+  @Post('verify-email')
   @ApiOkResponse({ type: UserEntity })
-  verifyEmail(@Param('token') token: string, @Body() { email }: VerifyEmailDto) {
-    return this.authService.verifyEmail(token, email);
+  verifyEmail(@Body() { token, email, pin }: VerifyEmailDto) {
+    return this.authService.verifyEmail(token, email, pin);
   }
-
 
   @Post('/resend-verification')
   @ApiOkResponse({ type: UserEntity })
@@ -38,12 +46,11 @@ export class AuthController {
     return this.authService.resendEmailVerification(email);
   }
 
-
   @Get('me')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  getMe(@Req() req: any) {
-    const user = req.user;
-    return this.authService.getMe(user.id);
+  async getMe(@Req() req: any) {
+    return this.authService.getMe(req.user.userId);
   }
 }

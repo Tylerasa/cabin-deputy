@@ -32,9 +32,8 @@ export class AuthService {
     this.logger.log('Registering user', {
       ...createUserDto,
       password: '[REDACTED]',
-      pin: '[REDACTED]',
     });
-    const { email, phone, password, pin, username, name } = createUserDto;
+    const { email, phone, password, username, name } = createUserDto;
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -51,21 +50,22 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, roundsOfHashing);
-    const hashedPin = await bcrypt.hash(pin, roundsOfHashing);
 
     const token = faker.string.nanoid();
 
-    const user = this.prisma.user.create({
+    await this.prisma.user.create({
       data: {
         ...createUserDto,
         password: hashedPassword,
-        pin: hashedPin,
         verificationToken: token,
       },
     });
 
     await this.mailSenderService.sendWelcomeMail(name, email, token);
-    return user;
+    return {
+      message:
+        'User created successfully, please check your email for verification',
+    };
   }
 
   async login(username: string, password: string): Promise<LoginUserEntity> {
@@ -78,12 +78,18 @@ export class AuthService {
     const user = await this.prisma.user.findFirst({
       where: whereClause,
     });
+
+
+    if (!user) {
+      throw new NotFoundException(`No user found for username: ${username}`);
+    }
+
     if (!user?.emailVerified) {
       throw new UnauthorizedException('Please verify your email first.');
     }
 
-    if (!user) {
-      throw new NotFoundException(`No user found for username: ${username}`);
+    if (!user.pin) {
+      throw new UnauthorizedException('Please set a pin first.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -93,13 +99,22 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign({ userId: user.id });
 
+    const sanitizedUser = {
+      ...user,
+      password: undefined,
+      pin: undefined,
+      verificationToken: undefined,
+      emailVerified: undefined,
+    };
+
     return {
       accessToken,
-      ...user,
+      message: 'Login successful',
+      ...sanitizedUser,
     };
   }
 
-  async verifyEmail(token: string, email: string) {
+  async verifyEmail(token: string, email: string, pin: string) {
     const user = await this.prisma.user.findFirst({
       where: { verificationToken: token, email },
     });
@@ -114,17 +129,23 @@ export class AuthService {
       );
     }
 
+    const hashedPin = await bcrypt.hash(pin, roundsOfHashing);
+
     await this.prisma.wallet.create({
       data: {
         userId: user.id,
-        balance: 0,
+        balance: 10,
       },
     });
 
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: user.id },
-      data: { emailVerified: true },
+      data: { emailVerified: true, pin: hashedPin },
     });
+
+    return {
+      message: 'Email verified successfully',
+    };
   }
 
   async resendEmailVerification(email: string) {
@@ -153,10 +174,18 @@ export class AuthService {
   }
 
   async getMe(userId: string) {
+    return this.findOne(userId);
+  }
+  async findOne(userId: string) {
     return this.prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        wallet: true,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+        wallet: true
       },
     });
   }
