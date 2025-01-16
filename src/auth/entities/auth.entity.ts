@@ -16,23 +16,23 @@ export class UserEntity {
   @ApiProperty()
   phone: string;
 
-  @ApiProperty()
+  @Exclude()
   emailVerified: boolean;
 
   @ApiProperty()
   createdAt: Date;
 
-  @ApiProperty()
-  @Exclude({ toPlainOnly: true })
+  @Exclude()
   password: string;
 
-  @ApiProperty()
-  @Exclude({ toPlainOnly: true })
+  @Exclude()
   pin: string;
 }
-
 
 export class LoginUserEntity extends UserEntity {
   @ApiProperty()
   accessToken: string;
+
+  @ApiProperty()
+  message: string;
 }
