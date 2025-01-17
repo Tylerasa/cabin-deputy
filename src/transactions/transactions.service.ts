@@ -11,6 +11,7 @@ import { PaymentIntent } from '@prisma/client';
 import { MailSenderService } from 'src/mail-sender/mail-sender.service';
 import * as bcrypt from 'bcrypt';
 import { CompleteTransactionDto } from './dto/complete-transaction.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 interface UserEmailWithWallet {
   user: {
@@ -306,13 +307,18 @@ export class TransactionsService {
     );
   }
 
-  async getTransactionHistory(userId: string) {
+  async getTransactionHistory(query: PaginationQueryDto, userId: string) {
     this.logger.log('Getting transaction history', {
       userId,
     });
+
+    const { page = 1, limit = 5 } = query;
     const wallet = await this.prisma.wallet.findUnique({
       where: { userId },
     });
+
+    const skip = (page - 1) * limit;
+    const take = limit;
 
     if (!wallet) {
       this.logger.error('Wallet not found', {
@@ -325,6 +331,8 @@ export class TransactionsService {
       where: {
         OR: [{ senderWalletId: wallet.id }, { recipientWalletId: wallet.id }],
       },
+      skip,
+      take,
       select: {
         id: true,
         amount: true,
@@ -352,6 +360,9 @@ export class TransactionsService {
             currencyCode: true,
           },
         },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }

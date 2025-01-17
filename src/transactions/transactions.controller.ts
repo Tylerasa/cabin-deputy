@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CompleteTransactionDto } from './dto/complete-transaction.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Controller('transactions')
 @ApiTags('Transactions')
@@ -34,7 +35,13 @@ export class TransactionsController {
   @Get('history')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  getTransactionHistory(@Req() req: any) {
-    return this.transactionsService.getTransactionHistory(req.user.userId);
+  getTransactionHistory(
+    @Query() query: PaginationQueryDto,
+    @Req() req: any,
+  ) {
+    return this.transactionsService.getTransactionHistory(
+      query,
+      req.user.userId,
+    );
   }
 }
