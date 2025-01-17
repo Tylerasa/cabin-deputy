@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { MailSenderService } from './mail-sender.service';
 
+console.log('__dirname', __dirname);
 @Module({
   providers: [MailSenderService],
   exports: [MailSenderService],
@@ -21,7 +22,7 @@ import { MailSenderService } from './mail-sender.service';
       },
       preview: false,
       template: {
-        dir: join(__dirname, 'templates'),
+        dir: join(__dirname, '..', '..', 'mail-sender', 'templates'),
         adapter: new HandlebarsAdapter(
           {
             splitToken: (token) => token.split(''),
@@ -47,7 +48,6 @@ import { MailSenderService } from './mail-sender.service';
         },
       },
     }),
-
   ],
 })
 export class MailSenderModule {}
