@@ -1,6 +1,5 @@
-const Anthropic = require('@anthropic-ai/sdk');
-const { Octokit } = require('@octokit/rest');
-const { execSync } = require('child_process');
+import Anthropic from '@anthropic-ai/sdk';
+import { Octokit } from '@octokit/rest';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -22,20 +21,17 @@ async function getChangedFiles(prNumber) {
 
 async function getDiff(prNumber) {
   try {
-    // Get the base and head SHA
-    const { data: pr } = await octokit.rest.pulls.get({
+    // Get the diff using GitHub API
+    const { data } = await octokit.rest.pulls.get({
       owner: process.env.GITHUB_REPOSITORY.split('/')[0],
       repo: process.env.GITHUB_REPOSITORY.split('/')[1],
       pull_number: prNumber,
+      mediaType: {
+        format: 'diff'
+      }
     });
     
-    // Get the diff
-    const diff = execSync(
-      `git diff ${pr.base.sha}..${pr.head.sha}`,
-      { encoding: 'utf-8' }
-    );
-    
-    return diff;
+    return data;
   } catch (error) {
     console.error('Error getting diff:', error);
     return '';

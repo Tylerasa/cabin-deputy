@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3",
+    "@octokit/rest": "^20.1.1"
+  }
+}

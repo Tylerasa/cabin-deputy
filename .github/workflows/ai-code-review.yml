@@ -31,13 +31,16 @@ jobs:
           node-version: '18'
           
       - name: Install dependencies
+        working-directory: .github
         run: |
-          npm install @anthropic-ai/sdk @octokit/rest simple-git
+          npm install
           
       - name: Run AI Code Review
+        working-directory: .github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PR_NUMBER: ${{ steps.pr-details.outputs.pr_number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          node .github/scripts/ai-reviewer.js
+          node scripts/ai-reviewer.js

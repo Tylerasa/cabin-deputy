@@ -1,0 +1,40 @@
+# AI Code Reviewer Configuration
+# This file configures the behavior of the AI code reviewer
+
+# Review focus areas (all enabled by default)
+review_focus:
+  - security          # Security vulnerabilities and best practices
+  - performance       # Performance optimizations and issues
+  - code_quality      # Code maintainability and best practices
+  - type_safety       # TypeScript type issues
+  - testing           # Test coverage and quality
+  - documentation     # Missing or unclear documentation
+  - accessibility     # A11y considerations
+  - seo              # SEO implications for Next.js
+
+# Files to exclude from review
+exclude_files:
+  - "*.md"           # Markdown files
+  - "*.json"         # JSON files (except package.json)
+  - "*.lock"         # Lock files
+  - "*.log"          # Log files
+  - ".env*"          # Environment files
+  - "dist/*"         # Build output
+  - "build/*"        # Build output
+  - "node_modules/*" # Dependencies
+
+# Maximum diff size to review (characters)
+max_diff_size: 50000
+
+# Review triggers (comment patterns that trigger review)
+triggers:
+  - "@agent please review this PR"
+  - "@agent review"
+  - "@agent security review"    # Focus on security
+  - "@agent performance review" # Focus on performance
+
+# AI model configuration
+ai_config:
+  model: "claude-3-5-sonnet-20241022"
+  max_tokens: 4000
+  temperature: 0.1  # Lower temperature for more consistent reviews
