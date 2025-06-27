@@ -1,0 +1,43 @@
+name: AI Code Review
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  ai-review:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '@agent please review this PR')
+    runs-on: ubuntu-latest
+    
+    permissions:
+      pull-requests: write
+      contents: read
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
+      - name: Get PR details
+        id: pr-details
+        run: |
+          PR_NUMBER=${{ github.event.issue.number }}
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm install @anthropic-ai/sdk @octokit/rest simple-git
+          
+      - name: Run AI Code Review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_NUMBER: ${{ steps.pr-details.outputs.pr_number }}
+        run: |
+          node .github/scripts/ai-reviewer.js
