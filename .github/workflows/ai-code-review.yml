@@ -106,5 +106,3 @@ jobs:
           
           # Post the review as a comment
           gh pr comment ${{ steps.pr-details.outputs.pr_number }} --body-file formatted_review.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
