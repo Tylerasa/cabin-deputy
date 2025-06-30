@@ -38,8 +38,9 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          # Configure Claude Code with API key
-          echo "$ANTHROPIC_API_KEY" | claude auth login --api-key
+          # Verify Claude Code is installed and API key is available
+          claude --version
+          echo "Claude Code CLI ready with API key"
           
       - name: Get changed files for PR
         id: changed-files
@@ -54,6 +55,8 @@ jobs:
           
       - name: Run Claude Code Review
         id: claude-review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           # Create a comprehensive review prompt
           echo "Please review this Pull Request. I'm working on a Next.js/TypeScript project with Puppeteer image generation features.
