@@ -89,8 +89,20 @@ jobs:
               fi
             done < changed_files.txt
             
-            # Get Claude's review
-            claude chat --file review_prompt.txt --output review_output.md
+            # Get Claude's review - try different methods
+            echo "Attempting Claude Code review..."
+            if cat review_prompt.txt | claude chat > review_output.md 2>&1; then
+              echo "Claude review completed successfully"
+            else
+              echo "Claude chat command failed, trying alternative..."
+              echo "Available Claude commands:"
+              claude --help || true
+              # Fallback message
+              echo "## Claude Code Review Failed" > review_output.md
+              echo "The Claude Code CLI command failed. Please check the workflow logs for details." >> review_output.md
+              echo "Available commands:" >> review_output.md
+              claude --help >> review_output.md 2>&1 || echo "Could not get help info" >> review_output.md
+            fi
           else
             echo "No files to review" > review_output.md
           fi
